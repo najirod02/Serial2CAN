@@ -54,6 +54,9 @@ void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
+
+  //filter configuration for can bus
+  //TODO: check the configuration, this is to be able to receive the payload
   CAN_FilterTypeDef canfilterconfig;
   canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
   canfilterconfig.FilterBank = 10;
@@ -67,6 +70,7 @@ void MX_CAN1_Init(void)
   canfilterconfig.SlaveStartFilterBank = 0;
 
   HAL_CAN_ConfigFilter(&hcan1, &canfilterconfig);
+  
   /* USER CODE END CAN1_Init 2 */
 
 }

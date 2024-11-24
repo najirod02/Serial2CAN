@@ -59,7 +59,7 @@ void SystemClock_Config(void);
 CAN_TxHeaderTypeDef TxHeader;
 CAN_RxHeaderTypeDef RxHeader;
 
-uint32_t TxMailBox;
+uint32_t TxMailBox[3];
 
 uint8_t TxData[8];
 uint8_t RxData[8];
@@ -67,7 +67,7 @@ uint8_t RxData[8];
 uint8_t count = 0;
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
-  HAL_CAN_GetRxMessage(&hcan, CAN_RX_FIFO0, &RxHeader, RxData);
+  HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
   count++;
 }
 
@@ -117,8 +117,14 @@ int main(void)
   TxHeader.TransmitGlobalTime = DISABLE;
 
   TxData[0] = 0xf3;
+  TxData[1] = 0xff;
+  TxData[2] = 0x03;
 
-  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, TxData, &TxMailBox);  
+  //mailboxes are used as buffers. there are only 3 of them, while transmitting
+  //the hw automatically decided which one to send the message to
+  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[0], &TxMailBox[0]);
+  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[1], &TxMailBox[1]);
+  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[2], &TxMailBox[2]);
   /* USER CODE END 2 */
 
   /* Infinite loop */
