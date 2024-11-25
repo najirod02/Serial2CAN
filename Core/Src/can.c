@@ -56,7 +56,7 @@ void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   //filter configuration for can bus
-  //TODO: check the configuration, this is to be able to receive the payload
+  //with this configuration, everything is accepted
   CAN_FilterTypeDef canfilterconfig;
   canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
   canfilterconfig.FilterBank = 10;

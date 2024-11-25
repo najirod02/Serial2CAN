@@ -25,6 +25,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,6 +37,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define BUFFER_SIZE 100
+#define SERIAL_BUFFER_SIZE 15
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,7 +48,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+char serialBuffer[SERIAL_BUFFER_SIZE];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -59,16 +62,66 @@ void SystemClock_Config(void);
 CAN_TxHeaderTypeDef TxHeader;
 CAN_RxHeaderTypeDef RxHeader;
 
+//available only 3 mailboxes, the hw will automatically decide which to forward
+//the frame
 uint32_t TxMailBox[3];
 
 uint8_t TxData[8];
 uint8_t RxData[8];
 
-uint8_t count = 0;
-
+/**
+ * when we have pending messages, read them, construct a string
+ * to send back to uart to host pc.
+ * 
+ * we expect the following structure to manipulate:
+ * tID#PAYLOAD
+ * 
+ * t is automatically added by cansend
+ * ID 3 chars
+ * # to separate ID and PAYLOAD
+ * PAYLOAD 8 chars
+ */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
-  count++;
+  //simply concatenate Id and Payload
+  char can2Uart[SERIAL_BUFFER_SIZE];
+  //sprintf(can2Uart, "%u#%s", RxHeader.StdId, RxData);
+  can2Uart[12] = '\0';
+  //FIXME: data correctly read but cannot be send back to serial
+  int len = sprintf(can2Uart, "123#DEADBEEF");
+  HAL_UART_Transmit_IT(&huart2, (uint8_t *) can2Uart, len);
+}
+
+/**
+ * when a can frame is received from the serial, create a new frame to send
+ * through the "real" can interface
+ */
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5); 
+  
+  //create the can frame and send it to a mailbox
+  TxHeader.DLC = 8; //number of bytes to send (max 8 bytes)
+  TxHeader.ExtId = 0; //we are not using extended id
+  //setting identifier of frame
+  char id[4];
+  //first char to be skipped (cansend automatically adds a t)
+  for(int i=1; i<=3; i++)
+    id[i-1] = serialBuffer[i];
+  id[3] = '\0';
+  TxHeader.StdId = atoi(id);//identifier of the board 
+  TxHeader.TransmitGlobalTime = DISABLE;
+
+  //collect payload to send
+  //skip # char
+  for(int i=5; i<strlen(serialBuffer); i++){
+    TxData[i-5] = serialBuffer[i];
+  }
+
+  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[0], &TxMailBox[0]);
+
+  //remain in listening for a new cansend frame
+  HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)serialBuffer, SERIAL_BUFFER_SIZE);
 }
 
 /* USER CODE END 0 */
@@ -81,8 +134,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  //uint8_t buffer[BUFFER_SIZE];
-  //uint8_t buffer[]="test\n";
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -109,34 +160,19 @@ int main(void)
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 
-  TxHeader.DLC = 1;
-  TxHeader.ExtId = 0;
-  TxHeader.IDE = CAN_ID_STD;
-  TxHeader.RTR = CAN_RTR_DATA;
-  TxHeader.StdId = 0x103;
-  TxHeader.TransmitGlobalTime = DISABLE;
-
-  TxData[0] = 0xf3;
-  TxData[1] = 0xff;
-  TxData[2] = 0x03;
-
-  //mailboxes are used as buffers. there are only 3 of them, while transmitting
-  //the hw automatically decided which one to send the message to
-  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[0], &TxMailBox[0]);
-  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[1], &TxMailBox[1]);
-  HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[2], &TxMailBox[2]);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  //remain in listening for a cansend frame
+  HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)serialBuffer, SERIAL_BUFFER_SIZE);
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    //HAL_UART_Transmit(&huart2, buffer, sizeof(buffer), HAL_MAX_DELAY);
-    //HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
-    //HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }

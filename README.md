@@ -18,7 +18,7 @@ Note that the frames we are going to send will be "converted" into a serial mess
 so the board must read it and create a complete and correct can frame.
 
 ```bash
-sudo slcand -o -c /dev/ttyUSB0 can0
+sudo slcand -o -c /dev/ttyACM0 can0
 
 sudo ip link set can0 up type can bitrate 500000
 

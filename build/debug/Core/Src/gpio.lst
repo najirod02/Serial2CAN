@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccYoujZX.s 			page 1
+ARM GAS  /tmp/ccSRD8Fr.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccYoujZX.s 			page 1
   28:Core/Src/gpio.c **** /*----------------------------------------------------------------------------*/
   29:Core/Src/gpio.c **** /* Configure GPIO                                                             */
   30:Core/Src/gpio.c **** /*----------------------------------------------------------------------------*/
-ARM GAS  /tmp/ccYoujZX.s 			page 2
+ARM GAS  /tmp/ccSRD8Fr.s 			page 2
 
 
   31:Core/Src/gpio.c **** /* USER CODE BEGIN 1 */
@@ -103,7 +103,7 @@ ARM GAS  /tmp/ccYoujZX.s 			page 1
   50              		.loc 1 48 3 view .LVU4
   51 0010 0194     		str	r4, [sp, #4]
   52              		.loc 1 48 3 view .LVU5
-  53 0012 224B     		ldr	r3, .L3
+  53 0012 264B     		ldr	r3, .L3
   54 0014 1A6B     		ldr	r2, [r3, #48]
   55 0016 42F00402 		orr	r2, r2, #4
   56 001a 1A63     		str	r2, [r3, #48]
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccYoujZX.s 			page 1
   49:Core/Src/gpio.c ****   __HAL_RCC_GPIOH_CLK_ENABLE();
   65              		.loc 1 49 3 view .LVU9
   66              	.LBB3:
-ARM GAS  /tmp/ccYoujZX.s 			page 3
+ARM GAS  /tmp/ccSRD8Fr.s 			page 3
 
 
   67              		.loc 1 49 3 view .LVU10
@@ -173,12 +173,12 @@ ARM GAS  /tmp/ccYoujZX.s 			page 1
   53:Core/Src/gpio.c ****   /*Configure GPIO pin Output Level */
   54:Core/Src/gpio.c ****   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
  113              		.loc 1 54 3 view .LVU27
- 114 0062 0F4D     		ldr	r5, .L3+4
+ 114 0062 134D     		ldr	r5, .L3+4
  115 0064 2246     		mov	r2, r4
  116 0066 2021     		movs	r1, #32
  117 0068 2846     		mov	r0, r5
  118 006a FFF7FEFF 		bl	HAL_GPIO_WritePin
-ARM GAS  /tmp/ccYoujZX.s 			page 4
+ARM GAS  /tmp/ccSRD8Fr.s 			page 4
 
 
  119              	.LVL0:
@@ -201,7 +201,7 @@ ARM GAS  /tmp/ccYoujZX.s 			page 1
   60:Core/Src/gpio.c ****   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
  131              		.loc 1 60 3 is_stmt 1 view .LVU34
  132 007c 05A9     		add	r1, sp, #20
- 133 007e 0948     		ldr	r0, .L3+8
+ 133 007e 0D48     		ldr	r0, .L3+8
  134 0080 FFF7FEFF 		bl	HAL_GPIO_Init
  135              	.LVL1:
   61:Core/Src/gpio.c **** 
@@ -231,38 +231,55 @@ ARM GAS  /tmp/ccYoujZX.s 			page 1
  153 0094 FFF7FEFF 		bl	HAL_GPIO_Init
  154              	.LVL2:
   68:Core/Src/gpio.c **** 
-  69:Core/Src/gpio.c **** }
- 155              		.loc 1 69 1 is_stmt 0 view .LVU44
- 156 0098 0BB0     		add	sp, sp, #44
- 157              		.cfi_def_cfa_offset 12
- 158              		@ sp needed
- 159 009a 30BD     		pop	{r4, r5, pc}
- 160              	.L4:
-ARM GAS  /tmp/ccYoujZX.s 			page 5
+  69:Core/Src/gpio.c ****   /* EXTI interrupt init*/
+  70:Core/Src/gpio.c ****   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+ 155              		.loc 1 70 3 view .LVU44
+ 156 0098 2246     		mov	r2, r4
+ 157 009a 2146     		mov	r1, r4
+ 158 009c 2820     		movs	r0, #40
+ 159 009e FFF7FEFF 		bl	HAL_NVIC_SetPriority
+ARM GAS  /tmp/ccSRD8Fr.s 			page 5
 
 
- 161              		.align	2
- 162              	.L3:
- 163 009c 00380240 		.word	1073887232
- 164 00a0 00000240 		.word	1073872896
- 165 00a4 00080240 		.word	1073874944
- 166              		.cfi_endproc
- 167              	.LFE134:
- 169              		.text
- 170              	.Letext0:
- 171              		.file 2 "/home/dorijan/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-n
- 172              		.file 3 "/home/dorijan/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-n
- 173              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f446xx.h"
- 174              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h"
-ARM GAS  /tmp/ccYoujZX.s 			page 6
+ 160              	.LVL3:
+  71:Core/Src/gpio.c ****   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+ 161              		.loc 1 71 3 view .LVU45
+ 162 00a2 2820     		movs	r0, #40
+ 163 00a4 FFF7FEFF 		bl	HAL_NVIC_EnableIRQ
+ 164              	.LVL4:
+  72:Core/Src/gpio.c **** 
+  73:Core/Src/gpio.c **** }
+ 165              		.loc 1 73 1 is_stmt 0 view .LVU46
+ 166 00a8 0BB0     		add	sp, sp, #44
+ 167              		.cfi_def_cfa_offset 12
+ 168              		@ sp needed
+ 169 00aa 30BD     		pop	{r4, r5, pc}
+ 170              	.L4:
+ 171              		.align	2
+ 172              	.L3:
+ 173 00ac 00380240 		.word	1073887232
+ 174 00b0 00000240 		.word	1073872896
+ 175 00b4 00080240 		.word	1073874944
+ 176              		.cfi_endproc
+ 177              	.LFE134:
+ 179              		.text
+ 180              	.Letext0:
+ 181              		.file 2 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f446xx.h"
+ 182              		.file 3 "/home/dorijan/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-n
+ 183              		.file 4 "/home/dorijan/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-n
+ 184              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h"
+ 185              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h"
+ARM GAS  /tmp/ccSRD8Fr.s 			page 6
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 gpio.c
-     /tmp/ccYoujZX.s:21     .text.MX_GPIO_Init:00000000 $t
-     /tmp/ccYoujZX.s:27     .text.MX_GPIO_Init:00000000 MX_GPIO_Init
-     /tmp/ccYoujZX.s:163    .text.MX_GPIO_Init:0000009c $d
+     /tmp/ccSRD8Fr.s:21     .text.MX_GPIO_Init:00000000 $t
+     /tmp/ccSRD8Fr.s:27     .text.MX_GPIO_Init:00000000 MX_GPIO_Init
+     /tmp/ccSRD8Fr.s:173    .text.MX_GPIO_Init:000000ac $d
 
 UNDEFINED SYMBOLS
 HAL_GPIO_WritePin
 HAL_GPIO_Init
+HAL_NVIC_SetPriority
+HAL_NVIC_EnableIRQ

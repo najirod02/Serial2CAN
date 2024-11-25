@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccJzOut3.s 			page 1
+ARM GAS  /tmp/ccsJYJmU.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
   28:Core/Src/can.c **** 
   29:Core/Src/can.c **** /* CAN1 init function */
   30:Core/Src/can.c **** void MX_CAN1_Init(void)
-ARM GAS  /tmp/ccJzOut3.s 			page 2
+ARM GAS  /tmp/ccsJYJmU.s 			page 2
 
 
   31:Core/Src/can.c **** {
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
   66              		.loc 1 47 25 is_stmt 0 view .LVU16
   67 0022 4376     		strb	r3, [r0, #25]
   48:Core/Src/can.c ****   hcan1.Init.AutoWakeUp = DISABLE;
-ARM GAS  /tmp/ccJzOut3.s 			page 3
+ARM GAS  /tmp/ccsJYJmU.s 			page 3
 
 
   68              		.loc 1 48 3 is_stmt 1 view .LVU17
@@ -150,7 +150,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
   56:Core/Src/can.c ****   /* USER CODE BEGIN CAN1_Init 2 */
   57:Core/Src/can.c **** 
   58:Core/Src/can.c ****   //filter configuration for can bus
-  59:Core/Src/can.c ****   //TODO: check the configuration, this is to be able to receive the payload
+  59:Core/Src/can.c ****   //with this configuration, everything is accepted
   60:Core/Src/can.c ****   CAN_FilterTypeDef canfilterconfig;
   87              		.loc 1 60 3 is_stmt 1 view .LVU28
   61:Core/Src/can.c ****   canfilterconfig.FilterActivation = CAN_FILTER_ENABLE;
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
  105 0040 0193     		str	r3, [sp, #4]
   66:Core/Src/can.c ****   canfilterconfig.FilterMaskIdHigh = 0;
  106              		.loc 1 66 3 is_stmt 1 view .LVU39
-ARM GAS  /tmp/ccJzOut3.s 			page 4
+ARM GAS  /tmp/ccsJYJmU.s 			page 4
 
 
  107              		.loc 1 66 36 is_stmt 0 view .LVU40
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
  151              		.thumb_func
  153              	HAL_CAN_MspInit:
  154              	.LVL3:
-ARM GAS  /tmp/ccJzOut3.s 			page 5
+ARM GAS  /tmp/ccsJYJmU.s 			page 5
 
 
  155              	.LFB135:
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
   98:Core/Src/can.c ****     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   99:Core/Src/can.c ****     GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
  100:Core/Src/can.c ****     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-ARM GAS  /tmp/ccJzOut3.s 			page 6
+ARM GAS  /tmp/ccsJYJmU.s 			page 6
 
 
  101:Core/Src/can.c **** 
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
   90:Core/Src/can.c ****     /**CAN1 GPIO Configuration
  217              		.loc 1 90 5 view .LVU67
  218 003a 0294     		str	r4, [sp, #8]
-ARM GAS  /tmp/ccJzOut3.s 			page 7
+ARM GAS  /tmp/ccsJYJmU.s 			page 7
 
 
   90:Core/Src/can.c ****     /**CAN1 GPIO Configuration
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
  257 006e FFF7FEFF 		bl	HAL_GPIO_Init
  258              	.LVL7:
  102:Core/Src/can.c ****     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-ARM GAS  /tmp/ccJzOut3.s 			page 8
+ARM GAS  /tmp/ccsJYJmU.s 			page 8
 
 
  259              		.loc 1 102 5 is_stmt 1 view .LVU84
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
  299              	.LVL12:
  300              		.loc 1 118 1 is_stmt 0 view .LVU99
  301 00aa B6E7     		b	.L7
-ARM GAS  /tmp/ccJzOut3.s 			page 9
+ARM GAS  /tmp/ccsJYJmU.s 			page 9
 
 
  302              	.L12:
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
  139:Core/Src/can.c ****     HAL_NVIC_DisableIRQ(CAN1_RX1_IRQn);
  140:Core/Src/can.c ****   /* USER CODE BEGIN CAN1_MspDeInit 1 */
  141:Core/Src/can.c **** 
-ARM GAS  /tmp/ccJzOut3.s 			page 10
+ARM GAS  /tmp/ccsJYJmU.s 			page 10
 
 
  142:Core/Src/can.c ****   /* USER CODE END CAN1_MspDeInit 1 */
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
  383              		.file 3 "/home/dorijan/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-n
  384              		.file 4 "/home/dorijan/.config/Code/User/globalStorage/bmd.stm32-for-vscode/@xpack-dev-tools/arm-n
  385              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
-ARM GAS  /tmp/ccJzOut3.s 			page 11
+ARM GAS  /tmp/ccsJYJmU.s 			page 11
 
 
  386              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
@@ -607,22 +607,22 @@ ARM GAS  /tmp/ccJzOut3.s 			page 1
  389              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h"
  390              		.file 10 "Core/Inc/can.h"
  391              		.file 11 "Core/Inc/main.h"
-ARM GAS  /tmp/ccJzOut3.s 			page 12
+ARM GAS  /tmp/ccsJYJmU.s 			page 12
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 can.c
-     /tmp/ccJzOut3.s:21     .text.MX_CAN1_Init:00000000 $t
-     /tmp/ccJzOut3.s:27     .text.MX_CAN1_Init:00000000 MX_CAN1_Init
-     /tmp/ccJzOut3.s:141    .text.MX_CAN1_Init:00000060 $d
-     /tmp/ccJzOut3.s:378    .bss.hcan1:00000000 hcan1
-     /tmp/ccJzOut3.s:147    .text.HAL_CAN_MspInit:00000000 $t
-     /tmp/ccJzOut3.s:153    .text.HAL_CAN_MspInit:00000000 HAL_CAN_MspInit
-     /tmp/ccJzOut3.s:305    .text.HAL_CAN_MspInit:000000ac $d
-     /tmp/ccJzOut3.s:311    .text.HAL_CAN_MspDeInit:00000000 $t
-     /tmp/ccJzOut3.s:317    .text.HAL_CAN_MspDeInit:00000000 HAL_CAN_MspDeInit
-     /tmp/ccJzOut3.s:367    .text.HAL_CAN_MspDeInit:00000030 $d
-     /tmp/ccJzOut3.s:375    .bss.hcan1:00000000 $d
+     /tmp/ccsJYJmU.s:21     .text.MX_CAN1_Init:00000000 $t
+     /tmp/ccsJYJmU.s:27     .text.MX_CAN1_Init:00000000 MX_CAN1_Init
+     /tmp/ccsJYJmU.s:141    .text.MX_CAN1_Init:00000060 $d
+     /tmp/ccsJYJmU.s:378    .bss.hcan1:00000000 hcan1
+     /tmp/ccsJYJmU.s:147    .text.HAL_CAN_MspInit:00000000 $t
+     /tmp/ccsJYJmU.s:153    .text.HAL_CAN_MspInit:00000000 HAL_CAN_MspInit
+     /tmp/ccsJYJmU.s:305    .text.HAL_CAN_MspInit:000000ac $d
+     /tmp/ccsJYJmU.s:311    .text.HAL_CAN_MspDeInit:00000000 $t
+     /tmp/ccsJYJmU.s:317    .text.HAL_CAN_MspDeInit:00000000 HAL_CAN_MspDeInit
+     /tmp/ccsJYJmU.s:367    .text.HAL_CAN_MspDeInit:00000030 $d
+     /tmp/ccsJYJmU.s:375    .bss.hcan1:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_CAN_Init
