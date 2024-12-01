@@ -27,6 +27,7 @@
 #include "string.h"
 #include "stdio.h"
 #include "stdlib.h"
+#include "math.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,7 +38,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define BUFFER_SIZE 100
-#define SERIAL_BUFFER_SIZE 15
+#define SERIAL_BUFFER_SIZE 20
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -73,23 +74,37 @@ uint8_t RxData[8];
  * when we have pending messages, read them, construct a string
  * to send back to uart to host pc.
  * 
- * we expect the following structure to manipulate:
- * tID#PAYLOAD
+ * in order to create a compliant slcand frame we have the following format:
+ * t<ID><DLC><DATA>
  * 
- * t is automatically added by cansend
- * ID 3 chars
- * # to separate ID and PAYLOAD
- * PAYLOAD 8 chars
+ * where t indicates a transmition of a frame (read the documentation of slcand
+ * for more flags for comunication)
  */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
-  //simply concatenate Id and Payload
+  //FIXME: convert data from decimal to hexa base before send to can
   char can2Uart[SERIAL_BUFFER_SIZE];
-  //sprintf(can2Uart, "%u#%s", RxHeader.StdId, RxData);
-  can2Uart[12] = '\0';
-  //FIXME: data correctly read but cannot be send back to serial
-  int len = sprintf(can2Uart, "123#DEADBEEF");
-  HAL_UART_Transmit_IT(&huart2, (uint8_t *) can2Uart, len);
+  char payload[RxHeader.DLC * 2];
+  char *offset = payload;
+
+  for(int i = 0; i<RxHeader.DLC; i++){
+    char first_char = (RxData[i] >> 4);
+    char second_char = (RxData[i] & 0xF);
+    
+    sprintf(offset, "%x%x", first_char, second_char);
+    offset+=2;
+  }
+
+  sprintf(can2Uart, "t%lx%lu%s\r", RxHeader.StdId, RxHeader.DLC, payload);
+
+  //for test, send back a random frame so that it can be checked with candump
+  //char can2Uart[] = "t4563112233\r";// can_id 0x456, len 3, data 0x11 0x22 0x33
+
+  HAL_StatusTypeDef result =  HAL_UART_Transmit(&huart2, (uint8_t *) can2Uart, strlen(can2Uart), HAL_MAX_DELAY);
+  if(result != HAL_OK) return;
+  //if toggles then message sent
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
+  
 }
 
 /**
@@ -98,23 +113,27 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5); 
-  
   //create the can frame and send it to a mailbox
-  TxHeader.DLC = 8; //number of bytes to send (max 8 bytes)
+  TxHeader.DLC = serialBuffer[4] - '0'; //number of bytes to send (max 8 bytes)
   TxHeader.ExtId = 0; //we are not using extended id
   //setting identifier of frame
   char id[4];
-  //first char to be skipped (cansend automatically adds a t)
-  for(int i=1; i<=3; i++)
+  //char t skipped at the moment for testing
+  for(int i = 1; i <= 3; i++)
     id[i-1] = serialBuffer[i];
   id[3] = '\0';
-  TxHeader.StdId = atoi(id);//identifier of the board 
+
+  uint32_t id_decimal = 0;
+  for(int i=0; i<3; i++){
+    id_decimal += (id[i] - '0') * pow(16, 2-i);
+  }
+
+  TxHeader.StdId = id_decimal;//identifier of the board 
   TxHeader.TransmitGlobalTime = DISABLE;
 
   //collect payload to send
   //skip # char
-  for(int i=5; i<strlen(serialBuffer); i++){
+  for(int i = 5; i < strlen(serialBuffer); i++){
     TxData[i-5] = serialBuffer[i];
   }
 
