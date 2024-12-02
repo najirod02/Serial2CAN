@@ -37,7 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUFFER_SIZE 50
+#define BUFFER_SIZE 25
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -62,10 +62,11 @@ void SystemClock_Config(void);
 CAN_TxHeaderTypeDef TxHeader;
 CAN_RxHeaderTypeDef RxHeader;
 
-//available only 3 mailboxes, the hw will automatically decide which to forward
-//the frame
+//available only 3 mailboxes, the hw will automatically decide which
+//to forward the frame
 uint32_t TxMailBox[3];
 
+//both to contain the maximum payload for both standard and extended frame
 uint8_t TxData[8];
 uint8_t RxData[8];
 
@@ -74,67 +75,77 @@ uint8_t RxData[8];
  * to send back to uart to host pc.
  * 
  * in order to create a compliant slcand frame we have the following format:
- * t<ID><DLC><DATA>
+ * <type><id><dlc><data>
  * 
- * where t indicates a transmition of a frame (read the documentation of slcand
- * for more flags for comunication)
  */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
   
+  //copy Id and DLC in buffer
   char can2Uart[BUFFER_SIZE] = {0};
+  char typeFrame = (RxHeader.RTR == CAN_RTR_DATA) ? 't' : 'r';
+  sprintf(can2Uart, "%c%03lX%lu", typeFrame, RxHeader.StdId, RxHeader.DLC);
 
-  sprintf(can2Uart, "t%03lX%lu", RxHeader.StdId, RxHeader.DLC);
-
+  //convertion of bytes into hex characters
+  //1 byte = 2 hex values
   char *offset = can2Uart + strlen(can2Uart);
   for (uint8_t i = 0; i < RxHeader.DLC; i++) {
-      sprintf(offset, "%02X", RxData[i]); // convert each byte to 2 hex characters
+      sprintf(offset, "%02X", RxData[i]);
       offset += 2;
   }
   strcat(can2Uart, "\r");
 
-  //for test, send back a random frame so that it can be checked with candump
-  //char can2Uart[] = "t4563112233\r";// can_id 0x456, len 3, data 0x11 0x22 0x33
-  if(HAL_UART_Transmit_IT(&huart2, (uint8_t *) can2Uart, strlen(can2Uart)) != HAL_OK){
-    HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
-  }
-  memset(serialBuffer, 0, BUFFER_SIZE);
+  //an example of what should look like the final string
+  //"t4563112233\r";// can_id 0x456, len 3, data 0x11 0x22 0x33
+
+  HAL_UART_Transmit_IT(&huart2, (uint8_t *) can2Uart, strlen(can2Uart));
+  memset(serialBuffer, 0, BUFFER_SIZE);//clear buffer
 }
 
 /**
- * when a can frame is received from the serial, create a new frame to send
- * through the "real" can interface
+ * when a can frame message is received from the serial, create a new frame to send
+ * through the "real" can interface.
+ * 
+ * the frame created assumes a standard frame
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-  //check if first char is 't'
-  //at the moment we only manage transmition frames with std id
-  if(serialBuffer[0] != 't') return;
-  
+  //extended frames are dropped as they are not used
+  if(serialBuffer[0] == 'T' || serialBuffer[0] == 'R') return;
+
   //create the can frame and send it to a mailbox
   char id[4] = {0};
-  strncpy(id, &serialBuffer[1], 3); // assuming "t123#..." format
+  strncpy(id, &serialBuffer[1], 3);//assuming standard id
   TxHeader.StdId = (uint32_t)strtol(id, NULL, 16);
-  TxHeader.ExtId = 0; // Not using extended ID
-  TxHeader.IDE = CAN_ID_STD; // Standard ID
-  TxHeader.RTR = CAN_RTR_DATA; // Data frame
+
+  TxHeader.ExtId = 0; //not using extended ID
+  TxHeader.IDE = CAN_ID_STD; //standard ID
+
+  TxHeader.RTR = (serialBuffer[0] == 't') ? 
+                  CAN_RTR_DATA : CAN_RTR_REMOTE; //data frame
+  
   TxHeader.TransmitGlobalTime = DISABLE;
 
-  //collect payload to send
-  //skip # char
-  uint8_t payload_length = (strlen(serialBuffer) - 5) / 2; // each byte = 2 hex chars
+  //collect payload to send skipping # char
+  uint8_t payload_length = (strlen(serialBuffer) - 5) / 2; //each byte = 2 hex chars
   if (payload_length > 8) {
-      // Error: payload too large for standard CAN frame
+      //payload too large for standard can frame
+      //drop message and abort sending can
+      //for example, 123#001122334455667788 is dropped
       return;
   }
 
-  for (int i = 0; i < payload_length; i++) {
-    char hex_byte[3] = {serialBuffer[5 + 2 * i], serialBuffer[5 + 2 * i + 1], '\0'};
-    TxData[i] = (uint8_t)strtol(hex_byte, NULL, 16); // Convert each hex pair to uint8_t
+  if(TxHeader.RTR == CAN_RTR_DATA){
+    for (int i = 0; i < payload_length; i++) {
+      //create pair of hex chars
+      char hex_byte[3] = {serialBuffer[5 + 2 * i], serialBuffer[5 + 2 * i + 1], '\0'};
+      TxData[i] = (uint8_t)strtol(hex_byte, NULL, 16);//convert each hex pair to uint8_t
+    }
+    TxHeader.DLC = payload_length;
+  } else {
+    TxHeader.DLC = (uint32_t)serialBuffer[4];
   }
-  TxHeader.DLC = payload_length;
-
 
   HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[0], &TxMailBox[0]);
 

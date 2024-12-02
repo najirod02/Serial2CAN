@@ -9,7 +9,7 @@ Table of Content:
 - [Slcand encapsulation format](#slcand-encapsulation-format)
 - [Send CAN frames](#send-can-frames)
 - [Dump CAN frames](#dump-can-frames)
-
+- [Known issues](#known-issues)
 
 ## General info
 
@@ -42,6 +42,19 @@ ip link show can0
 
 This will create a can interface with baud rate of 50K.
 
+It is also possible to use the following scripts to manage for easily the interface, 
+both inside the folder __Scripts__.
+
+```bash
+./setup.sh /dev/ttyACMX
+```
+
+```bash
+./close.sh
+```
+
+`After bringing up the interface, reset the board by pressing the reset button`
+
 ## CAN mask configuration on STM32
 It is possible not only to set a mask directly on the terminal of the host pc but also 
 on the board to accept or reject the frames it receives.<br/>
@@ -63,8 +76,10 @@ Briefly, we have:
 Simply run the following command:
 ```bash
 cansend can0 123#DEADBEEF
+cansend can0 123#R4
 ```
-where as example we send with ID = 123 the payload DEADBEEF.
+where as example we send with ID = 123 the payload DEADBEEF and send a remote request
+for 4 bytes
 
 ```bash
 cangen can0
@@ -80,6 +95,10 @@ candump can0
 All traffic will be intercepted (based on the mask of the board/terminal) and will be
 displayed on terminal.
 
+## Known issues
+For some unknown reasons, while seting up the can interface, the board will not be able
+to comunicate trhough the UART. <br/>By pressing the __RESTART__ button of the board, the frames from the board are transmitted without any problem.<br/>
+Possible reason, race condition or blocking of the ACM port.
 
 ## Authors
 Dorijan Di Zepp dorijan.dizepp@eagletrt.it
