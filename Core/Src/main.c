@@ -37,8 +37,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUFFER_SIZE 100
-#define SERIAL_BUFFER_SIZE 20
+#define BUFFER_SIZE 50
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -49,7 +48,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-char serialBuffer[SERIAL_BUFFER_SIZE];
+char serialBuffer[BUFFER_SIZE];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -81,30 +80,26 @@ uint8_t RxData[8];
  * for more flags for comunication)
  */
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
+
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
-  //FIXME: convert data from decimal to hexa base before send to can
-  char can2Uart[SERIAL_BUFFER_SIZE];
-  char payload[RxHeader.DLC * 2];
-  char *offset = payload;
+  
+  char can2Uart[BUFFER_SIZE] = {0};
 
-  for(int i = 0; i<RxHeader.DLC; i++){
-    char first_char = (RxData[i] >> 4);
-    char second_char = (RxData[i] & 0xF);
-    
-    sprintf(offset, "%x%x", first_char, second_char);
-    offset+=2;
+  sprintf(can2Uart, "t%03lX%lu", RxHeader.StdId, RxHeader.DLC);
+
+  char *offset = can2Uart + strlen(can2Uart);
+  for (uint8_t i = 0; i < RxHeader.DLC; i++) {
+      sprintf(offset, "%02X", RxData[i]); // convert each byte to 2 hex characters
+      offset += 2;
   }
-
-  sprintf(can2Uart, "t%lx%lu%s\r", RxHeader.StdId, RxHeader.DLC, payload);
+  strcat(can2Uart, "\r");
 
   //for test, send back a random frame so that it can be checked with candump
   //char can2Uart[] = "t4563112233\r";// can_id 0x456, len 3, data 0x11 0x22 0x33
-
-  HAL_StatusTypeDef result =  HAL_UART_Transmit(&huart2, (uint8_t *) can2Uart, strlen(can2Uart), HAL_MAX_DELAY);
-  if(result != HAL_OK) return;
-  //if toggles then message sent
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
-  
+  if(HAL_UART_Transmit_IT(&huart2, (uint8_t *) can2Uart, strlen(can2Uart)) != HAL_OK){
+    HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
+  }
+  memset(serialBuffer, 0, BUFFER_SIZE);
 }
 
 /**
@@ -113,34 +108,39 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
+  //check if first char is 't'
+  //at the moment we only manage transmition frames with std id
+  if(serialBuffer[0] != 't') return;
+  
   //create the can frame and send it to a mailbox
-  TxHeader.DLC = serialBuffer[4] - '0'; //number of bytes to send (max 8 bytes)
-  TxHeader.ExtId = 0; //we are not using extended id
-  //setting identifier of frame
-  char id[4];
-  //char t skipped at the moment for testing
-  for(int i = 1; i <= 3; i++)
-    id[i-1] = serialBuffer[i];
-  id[3] = '\0';
-
-  uint32_t id_decimal = 0;
-  for(int i=0; i<3; i++){
-    id_decimal += (id[i] - '0') * pow(16, 2-i);
-  }
-
-  TxHeader.StdId = id_decimal;//identifier of the board 
+  char id[4] = {0};
+  strncpy(id, &serialBuffer[1], 3); // assuming "t123#..." format
+  TxHeader.StdId = (uint32_t)strtol(id, NULL, 16);
+  TxHeader.ExtId = 0; // Not using extended ID
+  TxHeader.IDE = CAN_ID_STD; // Standard ID
+  TxHeader.RTR = CAN_RTR_DATA; // Data frame
   TxHeader.TransmitGlobalTime = DISABLE;
 
   //collect payload to send
   //skip # char
-  for(int i = 5; i < strlen(serialBuffer); i++){
-    TxData[i-5] = serialBuffer[i];
+  uint8_t payload_length = (strlen(serialBuffer) - 5) / 2; // each byte = 2 hex chars
+  if (payload_length > 8) {
+      // Error: payload too large for standard CAN frame
+      return;
   }
+
+  for (int i = 0; i < payload_length; i++) {
+    char hex_byte[3] = {serialBuffer[5 + 2 * i], serialBuffer[5 + 2 * i + 1], '\0'};
+    TxData[i] = (uint8_t)strtol(hex_byte, NULL, 16); // Convert each hex pair to uint8_t
+  }
+  TxHeader.DLC = payload_length;
+
 
   HAL_CAN_AddTxMessage(&hcan1, &TxHeader, &TxData[0], &TxMailBox[0]);
 
   //remain in listening for a new cansend frame
-  HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)serialBuffer, SERIAL_BUFFER_SIZE);
+  memset(serialBuffer, 0, BUFFER_SIZE);
+  HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)serialBuffer, BUFFER_SIZE);
 }
 
 /* USER CODE END 0 */
@@ -185,7 +185,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 
   //remain in listening for a cansend frame
-  HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)serialBuffer, SERIAL_BUFFER_SIZE);
+  HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)serialBuffer, BUFFER_SIZE);
 
   while (1)
   {
