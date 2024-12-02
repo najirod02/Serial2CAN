@@ -10,7 +10,7 @@ USB_CONNECTION=$1
 
 # set up the CAN interface
 echo "Creating and setting up CAN link for $USB_CONNECTION..."
-sudo slcand -o -s6 -S115200 "$USB_CONNECTION" can0
+sudo slcand -o -f -s6 -S115200 "$USB_CONNECTION" can0
 if [ $? -ne 0 ]; then
   echo "Failed to create CAN link. Check your connection."
   exit 1
