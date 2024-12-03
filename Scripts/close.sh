@@ -1,23 +1,31 @@
 #!/bin/bash
 
-# kill the slcand process associated with can0
+# check argument if present
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <canif name>" 
+  exit 1
+fi
+
+CAN_NAME=$1
+
+# kill the slcand process associated with canX
 echo "Detaching slcand..."
 
-# check if can0 exists
-if ! ip link show can0 > /dev/null 2>&1; then
-  echo "CAN interface can0 is not active."
+# check if canX exists
+if ! ip link show "$CAN_NAME" > /dev/null 2>&1; then
+  echo "CAN interface "$CAN_NAME" is not active."
   exit 1
 fi
 
-# set down can0
-echo "Bringing down CAN interface can0..."
-sudo ip link set can0 down
+# set down canX
+echo "Bringing down CAN interface "$CAN_NAME"..."
+sudo ip link set "$CAN_NAME" down
 if [ $? -ne 0 ]; then
-  echo "Failed to bring down can0."
+  echo "Failed to bring down "$CAN_NAME"."
   exit 1
 fi
 
-sudo pkill -f "slcand.*can0"
+sudo pkill -f "slcand.*"$CAN_NAME""
 if [ $? -ne 0 ]; then
   echo "Failed to detach slcand or no slcand process found."
   exit 1

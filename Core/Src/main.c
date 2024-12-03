@@ -112,7 +112,13 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
   //extended frames are dropped as they are not used
-  if(serialBuffer[0] == 'T' || serialBuffer[0] == 'R') return;
+  //also any not recognized frame type is dropped
+  if(serialBuffer[0] != 't' && serialBuffer[0] != 'r'){ 
+    memset(serialBuffer, 0, BUFFER_SIZE);
+    //waiting for new message
+    HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)serialBuffer, BUFFER_SIZE);
+    return;
+  }
 
   //create the can frame and send it to a mailbox
   char id[4] = {0};
@@ -133,6 +139,9 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
       //payload too large for standard can frame
       //drop message and abort sending can
       //for example, 123#001122334455667788 is dropped
+      memset(serialBuffer, 0, BUFFER_SIZE);
+      //waiting for new message
+      HAL_UARTEx_ReceiveToIdle_IT(&huart2, (uint8_t *)serialBuffer, BUFFER_SIZE);
       return;
   }
 
@@ -144,6 +153,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     }
     TxHeader.DLC = payload_length;
   } else {
+    //remote request, no payload defined
     TxHeader.DLC = (uint32_t)serialBuffer[4];
   }
 

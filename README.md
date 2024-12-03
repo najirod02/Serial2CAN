@@ -9,7 +9,6 @@ Table of Content:
 - [Slcand encapsulation format](#slcand-encapsulation-format)
 - [Send CAN frames](#send-can-frames)
 - [Dump CAN frames](#dump-can-frames)
-- [Known issues](#known-issues)
 
 ## General info
 
@@ -33,27 +32,24 @@ Slcand allows us to generate a frame, send it through the UART connection. Befor
 ```bash
 sudo apt-get install can-utils
 
-sudo slcand -o -s6 -S115200 /dev/ttyACM0 can0
+sudo slcand -o -s6 /dev/ttyACMX canX
 
-sudo ip link set can0 up type can bitrate 500000
+sudo ip link set canX up type can bitrate 500000
 
-ip link show can0
+ip link show canX
 ```
 
 This will create a can interface with baud rate of 50K.
 
-It is also possible to use the following scripts to manage for easily the interface, 
-both inside the folder __Scripts__.
+It is also possible to use the following scripts to manage more easily the set up of the interface, both inside the folder __Scripts__.
 
 ```bash
-./setup.sh /dev/ttyACMX
+./open.sh /dev/ttyACMX canX
 ```
 
 ```bash
-./close.sh
+./close.sh canX
 ```
-
-`After bringing up the interface, reset the board by pressing the reset button`
 
 ## CAN mask configuration on STM32
 It is possible not only to set a mask directly on the terminal of the host pc but also 
@@ -95,10 +91,10 @@ candump can0
 All traffic will be intercepted (based on the mask of the board/terminal) and will be
 displayed on terminal.
 
-## Known issues
-For some unknown reasons, while seting up the can interface, the board will not be able
-to comunicate trhough the UART. <br/>By pressing the __RESTART__ button of the board, the frames from the board are transmitted without any problem.<br/>
-Possible reason, race condition or blocking of the ACM port.
+```bash
+candump can0 -l
+```
+If you want to log all frames into an auto-generated file.
 
 ## Authors
 Dorijan Di Zepp dorijan.dizepp@eagletrt.it
