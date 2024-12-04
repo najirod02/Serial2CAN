@@ -17,11 +17,11 @@ Board: Nucleo F446RE
 For this project, the can is set in loopback mode in order to conduct tests more easily.<br/>
 For a "real" test it is possible to connect two board and set the can interface in normal mode.
 
-`Important notes:`<br/>
+`Important notes`<br/>
 
-__Loopback mode__: set PA11 to Pull-up
+__Loopback mode__ : set PA11 to Pull-up
 
-__Normal mode__: set PA11 to No pull-up and no pull-down
+__Normal mode__ : set PA11 to No pull-up and no pull-down
 
 
 ## Setup the can interface on Linux
@@ -29,19 +29,7 @@ In order to send CAN frames, we need first to setup the interface by using slcan
 After that, we can use cansend and candump to send and receive frames.<br/>
 Slcand allows us to generate a frame, send it through the UART connection. Before forwarding it to the "real" can bus, the board must create a can frame.
 
-```bash
-sudo apt-get install can-utils
-
-sudo slcand -o -s6 /dev/ttyACMX canX
-
-sudo ip link set canX up type can bitrate 500000
-
-ip link show canX
-```
-
-This will create a can interface with baud rate of 50K.
-
-It is also possible to use the following scripts to manage more easily the set up of the interface, both inside the folder __Scripts__.
+It is possible to use the following scripts to manage more easily the set up of the interface and its detaching, both inside the folder `Scripts`.
 
 ```bash
 ./open.sh /dev/ttyACMX canX
@@ -51,10 +39,12 @@ It is also possible to use the following scripts to manage more easily the set u
 ./close.sh canX
 ```
 
+If you need to change the `baudrate`, modify `open.sh` file ([CAN bitrate reference](https://elinux.org/Bringing_CAN_interface_up#SLCAN_based_Interfaces)). 
+
 ## CAN mask configuration on STM32
 It is possible not only to set a mask directly on the terminal of the host pc but also 
 on the board to accept or reject the frames it receives.<br/>
-The file __can.c__ contains the function __MX_CAN1_Init__ in which it is possible to define our mask.<br/>
+The file `can.c` contains the function `MX_CAN1_Init` in which it is possible to define our mask.<br/>
 The mask is set to 'anything' so, every frame the board receives will be taken and forwarded to the UART.
 
 
@@ -62,11 +52,12 @@ The mask is set to 'anything' so, every frame the board receives will be taken a
 Slcand uses a specific encapsulation format to send and receive the can frames, more details can be found [here](https://github.com/torvalds/linux/blob/master/drivers/net/can/slcan/slcan-core.c).
 
 Briefly, we have:
-- type: t, r, T, R
-- id: 3 (standard) or 8 (extended) bytes in ASCII Hex (base64)
-- dlc: one byte ASCII number ('0' - '8')
-- data: section has at much ASCII Hex bytes as defined by the dlc
+- __Type__ : t, r, T, R
+- __Id__ : 3 (standard) or 8 (extended) bytes in ASCII Hex (base64)
+- __Dlc__ : one byte ASCII number ('0' - '8')
+- __Data__ : section has at much ASCII Hex bytes as defined by the dlc
 
+At the moment, the project manages `only` the `standard frames` both for tranismit and receiving.
 
 ## Send CAN frames
 Simply run the following command:
@@ -88,13 +79,14 @@ Simply run the following command:
 ```bash
 candump can0
 ```
-All traffic will be intercepted (based on the mask of the board/terminal) and will be
+All traffic will be intercepted (based on the mask of the board / terminal) and will be
 displayed on terminal.
 
 ```bash
 candump can0 -l
 ```
 If you want to log all frames into an auto-generated file.
+
 
 ## Authors
 Dorijan Di Zepp dorijan.dizepp@eagletrt.it

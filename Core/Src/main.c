@@ -72,7 +72,7 @@ uint8_t RxData[8];
 
 /**
  * when we have pending messages, read them, construct a string
- * to send back to uart to host pc.
+ * to send back to host pc through uart.
  * 
  * in order to create a compliant slcand frame we have the following format:
  * <type><id><dlc><data>
@@ -107,12 +107,12 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
  * when a can frame message is received from the serial, create a new frame to send
  * through the "real" can interface.
  * 
- * the frame created assumes a standard frame
+ * we assume a standard frame to be received
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
   //extended frames are dropped as they are not used
-  //also any not recognized frame type is dropped
+  //also any frame type not recognized is dropped
   if(serialBuffer[0] != 't' && serialBuffer[0] != 'r'){ 
     memset(serialBuffer, 0, BUFFER_SIZE);
     //waiting for new message
@@ -128,8 +128,8 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
   TxHeader.ExtId = 0; //not using extended ID
   TxHeader.IDE = CAN_ID_STD; //standard ID
 
-  TxHeader.RTR = (serialBuffer[0] == 't') ? 
-                  CAN_RTR_DATA : CAN_RTR_REMOTE; //data frame
+  TxHeader.RTR = (serialBuffer[0] == 't') ?  //data frame / remote frame
+                  CAN_RTR_DATA : CAN_RTR_REMOTE;
   
   TxHeader.TransmitGlobalTime = DISABLE;
 
