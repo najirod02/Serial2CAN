@@ -136,7 +136,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
   //collect payload to send skipping # char
   uint8_t payload_length = (strlen(serialBuffer) - 5) / 2; //each byte = 2 hex chars
   if (payload_length > 8) {
-      //payload too large for standard can frame
+      //payload too large
       //drop message and abort sending can
       //for example, 123#001122334455667788 is dropped
       memset(serialBuffer, 0, BUFFER_SIZE);
