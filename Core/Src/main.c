@@ -28,6 +28,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "math.h"
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -78,12 +79,14 @@ uint8_t RxData[8];
  * <type><id><dlc><data>
  * 
  */
+char can2Uart[BUFFER_SIZE] = {0};
+bool ready2Send = false;
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
 
   HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
   
   //copy Id and DLC in buffer
-  char can2Uart[BUFFER_SIZE] = {0};
+  
   char typeFrame = (RxHeader.RTR == CAN_RTR_DATA) ? 't' : 'r';
   sprintf(can2Uart, "%c%03lX%lu", typeFrame, RxHeader.StdId, RxHeader.DLC);
 
@@ -95,12 +98,14 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan){
       offset += 2;
   }
   strcat(can2Uart, "\r");
+  ready2Send = true;
 
   //an example of what should look like the final string
   //"t4563112233\r";// can_id 0x456, len 3, data 0x11 0x22 0x33
 
-  HAL_UART_Transmit_IT(&huart2, (uint8_t *) can2Uart, strlen(can2Uart));
-  memset(serialBuffer, 0, BUFFER_SIZE);//clear buffer
+  //volatile HAL_StatusTypeDef result =  HAL_UART_Transmit(&huart3, (uint8_t *) can2Uart, strlen(can2Uart), 30);
+  //if(result == HAL_OK) return;
+  //memset(can2Uart, 0, BUFFER_SIZE);//clear buffer
 }
 
 /**
@@ -196,6 +201,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART2_UART_Init();
   MX_CAN1_Init();
+  MX_USART1_UART_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
@@ -213,6 +220,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    if(ready2Send) {
+      HAL_StatusTypeDef result =  HAL_UART_Transmit(&huart2, (uint8_t *) can2Uart, strlen(can2Uart), HAL_MAX_DELAY);
+      ready2Send = false;
+    }
   }
   /* USER CODE END 3 */
 }
